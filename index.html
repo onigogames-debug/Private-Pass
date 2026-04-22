@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Pass</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Phosphor Icons (for premium 1Password-like look) -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+  <!-- Auth Screen -->
+  <div id="auth-screen" class="screen">
+    <div class="auth-card">
+      <div class="auth-header">
+        <i class="ph-fill ph-lock-key"></i>
+        <h1>Private Pass</h1>
+      </div>
+      <p class="auth-subtitle">Enter your master password to unlock your vault.</p>
+      
+      <form id="auth-form">
+        <div class="input-group">
+          <input type="password" id="master-password" placeholder="Master Password" required autofocus>
+          <button type="submit" id="btn-unlock" class="btn btn-primary">Unlock</button>
+        </div>
+        <p id="auth-error" class="error-text hidden">Incorrect password or corrupted data.</p>
+      
+        <div class="auth-setup hidden" id="auth-setup">
+          <p class="auth-subtitle" style="margin-top:20px;">Welcome! Create a new master password above.</p>
+          <p class="warning-text">If you lose this password, you will permanently lose access to your data.</p>
+          <button type="button" id="btn-setup" class="btn btn-primary btn-block">Set Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App Screen -->
+  <div id="app-screen" class="screen hidden">
+    
+    <!-- Sidebar Backdrop for Mobile -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <i class="ph-fill ph-shield-check"></i>
+          <span>Private Pass</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-filter="all">
+          <i class="ph ph-squares-four"></i> All Items
+        </button>
+        <button class="nav-item" data-filter="Logins">
+          <i class="ph ph-globe"></i> Logins
+        </button>
+        <button class="nav-item" data-filter="Notes">
+          <i class="ph ph-note"></i> Secure Notes
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="nav-item" id="btn-export" title="Export Vault">
+          <i class="ph ph-download-simple"></i> Export
+        </button>
+        <label class="nav-item" title="Import Vault" for="input-import">
+          <i class="ph ph-upload-simple"></i> Import
+        </label>
+        <input type="file" id="input-import" accept=".json" class="hidden">
+        <button class="nav-item" id="btn-lock">
+          <i class="ph ph-lock"></i> Lock
+        </button>
+      </div>
+    </aside>
+
+    <!-- List View -->
+    <section class="list-pane">
+      <div class="list-header">
+        <button class="btn btn-icon btn-secondary mobile-menu-btn" id="btn-menu" title="Menu">
+          <i class="ph ph-list"></i>
+        </button>
+        <div class="search-bar">
+          <i class="ph ph-magnifying-glass"></i>
+          <input type="text" id="search-input" placeholder="Search...">
+        </div>
+        <button class="btn btn-icon btn-primary" id="btn-add" title="New Item">
+          <i class="ph ph-plus"></i>
+        </button>
+      </div>
+      <div class="item-list" id="item-list">
+        <!-- Rendered items go here -->
+      </div>
+    </section>
+
+    <!-- Detail View -->
+    <section class="detail-pane" id="detail-pane">
+      <div class="empty-state" id="empty-state">
+        <i class="ph ph-lock-key"></i>
+        <h2>Select an item</h2>
+        <p>Or create a new one to get started.</p>
+      </div>
+
+      <div class="detail-content hidden" id="detail-content">
+        <div class="detail-header">
+          <div class="detail-title-group">
+            <button class="btn btn-icon btn-secondary mobile-back-btn" id="btn-back" title="Back">
+              <i class="ph ph-arrow-left"></i>
+            </button>
+            <!-- Icon -->
+            <div class="detail-icon" id="detail-icon"><i class="ph-fill ph-globe"></i></div>
+            <div class="detail-title-edit">
+              <input type="text" id="edit-title" class="title-input" placeholder="Title">
+              <select id="edit-category" class="category-select">
+                <option value="Logins">Login</option>
+                <option value="Notes">Secure Note</option>
+              </select>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn btn-icon btn-danger" id="btn-delete" title="Delete"><i class="ph ph-trash"></i></button>
+            <button class="btn btn-primary" id="btn-save">Save</button>
+          </div>
+        </div>
+
+        <div class="detail-body">
+          <div class="field-group">
+            <label>Username / Email</label>
+            <div class="field-control">
+              <input type="text" id="edit-username" placeholder="Username">
+              <button class="btn btn-icon btn-secondary copy-btn" data-target="edit-username" title="Copy"><i class="ph ph-copy"></i></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Password</label>
+            <div class="field-control password-control">
+              <input type="password" id="edit-password" placeholder="Password">
+              <button class="btn btn-icon btn-secondary" id="btn-toggle-password" title="Reveal"><i class="ph ph-eye"></i></button>
+              <button class="btn btn-icon btn-secondary copy-btn" data-target="edit-password" title="Copy"><i class="ph ph-copy"></i></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>URL</label>
+            <div class="field-control">
+              <input type="url" id="edit-url" placeholder="https://">
+              <button class="btn btn-icon btn-secondary copy-btn" data-target="edit-url" title="Copy"><i class="ph ph-copy"></i></button>
+            </div>
+          </div>
+
+          <div class="field-group textarea-group">
+            <label>Notes</label>
+            <div class="field-control">
+              <textarea id="edit-notes" placeholder="Secure notes" rows="4"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">Copied to clipboard</div>
+
+  <script src="crypto.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('SW registration failed: ', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
