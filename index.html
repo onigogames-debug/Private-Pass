@@ -122,7 +122,10 @@
             <!-- Icon -->
             <div class="detail-icon" id="detail-icon"><i class="ph-fill ph-globe"></i></div>
             <div class="detail-title-edit">
-              <input type="text" id="edit-title" class="title-input" placeholder="Title">
+              <div class="title-input-wrapper">
+                <input type="text" id="edit-title" class="title-input" placeholder="Title">
+                <i class="ph ph-pencil-simple title-edit-icon"></i>
+              </div>
               <select id="edit-category" class="category-select">
                 <option value="Logins">Login</option>
                 <option value="Notes">Secure Note</option>
@@ -149,7 +152,11 @@
             <div class="field-control password-control">
               <input type="password" id="edit-password" placeholder="Password">
               <button class="btn btn-icon btn-secondary" id="btn-toggle-password" title="Reveal"><i class="ph ph-eye"></i></button>
+              <button class="btn btn-icon btn-secondary" id="btn-generate-password" title="Generate Strong Password"><i class="ph ph-magic-wand"></i></button>
               <button class="btn btn-icon btn-secondary copy-btn" data-target="edit-password" title="Copy"><i class="ph ph-copy"></i></button>
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar" id="strength-bar"></div>
             </div>
           </div>
 

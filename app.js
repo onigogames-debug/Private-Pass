@@ -53,6 +53,10 @@ const els = {
   copyBtns: document.querySelectorAll('.copy-btn'),
   toast: document.getElementById('toast'),
   
+  // New Features
+  btnGeneratePwd: document.getElementById('btn-generate-password'),
+  strengthBar: document.getElementById('strength-bar'),
+  
   // Mobile
   btnMenu: document.getElementById('btn-menu'),
   btnBack: document.getElementById('btn-back'),
@@ -71,6 +75,25 @@ function init() {
     els.authSetup.classList.remove('hidden');
   }
 }
+
+// ----------------------------------------------------
+// Auto Lock Feature
+// ----------------------------------------------------
+let autoLockTimer;
+const AUTO_LOCK_MS = 3 * 60 * 1000; // 3 minutes
+
+function resetAutoLock() {
+  clearTimeout(autoLockTimer);
+  if (appKey) { // only start if vault is unlocked
+    autoLockTimer = setTimeout(() => {
+      els.btnLock.click();
+    }, AUTO_LOCK_MS);
+  }
+}
+
+['mousemove', 'keydown', 'touchstart'].forEach(event => {
+  document.addEventListener(event, resetAutoLock);
+});
 
 // ----------------------------------------------------
 // Authentication
@@ -94,6 +117,7 @@ els.authForm.addEventListener('submit', async (e) => {
     els.passwordInput.value = '';
     showApp();
     renderList();
+    resetAutoLock();
   } catch(err) {
     console.error(err);
     els.authError.classList.remove('hidden');
@@ -260,6 +284,7 @@ function selectItem(id) {
   els.editPassword.type = 'password';
   els.btnTogglePwd.innerHTML = '<i class="ph ph-eye"></i>';
   
+  calculateStrength(item.password);
   updateDetailIcon(item.category);
 
   els.emptyState.classList.add('hidden');
@@ -346,6 +371,51 @@ els.btnTogglePwd.addEventListener('click', () => {
     els.btnTogglePwd.innerHTML = '<i class="ph ph-eye"></i>';
   }
 });
+
+// Password Generator
+els.btnGeneratePwd.addEventListener('click', () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~";
+  let pwd = "";
+  const randomValues = new Uint32Array(16);
+  window.crypto.getRandomValues(randomValues);
+  for (let i = 0; i < randomValues.length; i++) {
+    pwd += chars[randomValues[i] % chars.length];
+  }
+  els.editPassword.value = pwd;
+  
+  // Optional: automatically reveal so user can see it
+  if(els.editPassword.type === 'password') {
+    els.btnTogglePwd.click();
+  }
+  calculateStrength(pwd);
+  showToast("Password Generated");
+});
+
+// Password Strength
+els.editPassword.addEventListener('input', (e) => {
+  calculateStrength(e.target.value);
+});
+
+function calculateStrength(pwd) {
+  const bar = els.strengthBar;
+  bar.className = 'strength-bar'; // reset to default
+  if (!pwd) return;
+  
+  let score = 0;
+  if(pwd.length >= 8) score++;
+  if(pwd.length >= 12) score++;
+  if(/[A-Z]/.test(pwd)) score++;
+  if(/[0-9]/.test(pwd)) score++;
+  if(/[^A-Za-z0-9]/.test(pwd)) score++;
+  
+  if(score <= 2) {
+    bar.classList.add('weak');
+  } else if(score <= 4) {
+    bar.classList.add('medium');
+  } else {
+    bar.classList.add('strong');
+  }
+}
 
 // Copy to clipboard
 els.copyBtns.forEach(btn => {

@@ -319,16 +319,35 @@ textarea { resize: vertical; min-height: 80px; }
   flex: 1;
 }
 
+.title-input-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .title-input {
   font-size: 28px;
   font-weight: 600;
   background: transparent;
   border: 1px solid transparent;
-  padding: 4px 8px;
+  padding: 4px 32px 4px 8px; /* Extra padding right for the pencil */
   margin-left: -8px;
   color: var(--text-main);
+  border-bottom: 1px dashed var(--border-color); /* Signifies it's editable */
 }
-.title-input:focus { background: var(--bg-input); border-color: var(--border-color); }
+.title-input:focus { 
+  background: var(--bg-input); 
+  border-color: var(--border-color);
+  border-bottom-style: solid;
+}
+
+.title-edit-icon {
+  position: absolute;
+  right: 8px;
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 20px;
+}
 
 .category-select {
   width: auto;
@@ -369,6 +388,24 @@ textarea { resize: vertical; min-height: 80px; }
 
 .field-control input { flex: 1; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 15px;}
 .textarea-group .field-control { align-items: stretch; }
+
+/* Password Strength Indicator */
+.password-strength {
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+.strength-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.strength-bar.weak { width: 33%; background: var(--danger); }
+.strength-bar.medium { width: 66%; background: #f59e0b; /* yellow */ }
+.strength-bar.strong { width: 100%; background: #10b981; /* emerald */ }
 
 /* Toast */
 .toast {
